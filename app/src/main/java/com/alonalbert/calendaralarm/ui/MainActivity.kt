@@ -1,10 +1,10 @@
-package com.alonalbert.calendaralarm
+package com.alonalbert.calendaralarm.ui
 
 import android.database.ContentObserver
 import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
-import android.provider.CalendarContract.Events
+import android.provider.CalendarContract
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -25,7 +25,7 @@ class MainActivity : ComponentActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
 
-    contentResolver.registerContentObserver(Events.CONTENT_URI, true, object : ContentObserver(Handler(mainLooper)) {
+    contentResolver.registerContentObserver(CalendarContract.Events.CONTENT_URI, true, object : ContentObserver(Handler(mainLooper)) {
       override fun onChange(selfChange: Boolean, uris: MutableCollection<Uri>, flags: Int) {
         Log.i("Alon", "onChange: uris: ${uris.joinToString { it.toString() }}")
         getEvents()
@@ -43,8 +43,8 @@ class MainActivity : ComponentActivity() {
     enableEdgeToEdge()
     setContent {
       CalendarAlarmTheme {
-        Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-          App(modifier = Modifier.padding(innerPadding))
+        Scaffold(modifier = Modifier.Companion.fillMaxSize()) { innerPadding ->
+          App(modifier = Modifier.Companion.padding(innerPadding))
         }
       }
     }
@@ -58,12 +58,12 @@ class MainActivity : ComponentActivity() {
   }
 
   private fun getEvents() {
-    val uri = Events.CONTENT_URI
+    val uri = CalendarContract.Events.CONTENT_URI
     val cursor =
       contentResolver.query(
         uri,
-        arrayOf(Events.TITLE, Events.DTSTART),
-        "${Events.TITLE} LIKE '%foo%' ",
+        arrayOf(CalendarContract.Events.TITLE, CalendarContract.Events.DTSTART),
+        "${CalendarContract.Events.TITLE} LIKE '%foo%' ",
         /* selectionArgs = */        null,
         /* sortOrder = */        null
       ) ?: return
