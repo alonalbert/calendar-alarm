@@ -1,38 +1,39 @@
 package com.alonalbert.calendaralarm
 
+import android.app.PendingIntent.FLAG_IMMUTABLE
+import android.app.PendingIntent.getActivity
 import android.app.Service
 import android.content.Intent
 import android.content.pm.ServiceInfo
-import android.os.Binder
 import android.os.Build
-import android.os.IBinder
 import android.provider.CalendarContract
 import android.util.Log
-import android.widget.Toast
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE
 import androidx.core.app.ServiceCompat
+import com.alonalbert.calendaralarm.R.drawable.ic_notification
+import com.alonalbert.calendaralarm.R.string.app_name
+import com.alonalbert.calendaralarm.alarm.Alarm
+import com.alonalbert.calendaralarm.alarm.AlarmScheduler
 import com.alonalbert.calendaralarm.calendar.CalendarDataSource
+import com.alonalbert.calendaralarm.calendar.Event
 import com.alonalbert.calendaralarm.calendar.register
-import com.alonalbert.calendaralarm.utils.NotificationUtils
+import com.alonalbert.calendaralarm.ui.MainActivity
+import com.alonalbert.calendaralarm.utils.Notifications
+import com.alonalbert.calendaralarm.utils.Notifications.GENERAL_NOTIFICATION_CHANNEL_ID
+import com.alonalbert.calendaralarm.utils.Notifications.SERVICE_NOTIFICATION_ID
+import com.alonalbert.calendaralarm.utils.toLocalTimeString
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 
 class AppService : Service() {
 
-  private val binder = LocalBinder()
-
-  val supervisorJob = SupervisorJob()
+  private val supervisorJob = SupervisorJob()
   private val coroutineScope = CoroutineScope(supervisorJob)
+  private val alarmScheduler by lazy(mode = LazyThreadSafetyMode.SYNCHRONIZED) { AlarmScheduler(this) }
 
-
-  inner class LocalBinder : Binder() {
-    fun getService(): AppService = this@AppService
-  }
-
-  override fun onBind(intent: Intent?): IBinder {
-    Log.d(TAG, "AppService.onBind")
-    return binder
-  }
+  override fun onBind(intent: Intent?) = null
 
   override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
     Log.d(TAG, "AppService.onStartCommand")
@@ -49,29 +50,11 @@ class AppService : Service() {
     return super.onStartCommand(intent, flags, startId)
   }
 
-  private suspend fun updateNextAlarm() {
-    val dataSource = CalendarDataSource(contentResolver)
-    val event = dataSource.getNextEvent(listOf("Foo", "Bar"))
-    when (event) {
-      null -> Log.i(TAG, "No alarm events found")
-      else -> Log.i(TAG, "Next alarm: $event")
-    }
-  }
-
-  override fun onCreate() {
-    super.onCreate()
-    Log.d(TAG, "AppService.onCreate")
-
-    Toast.makeText(this, "Foreground Service created", Toast.LENGTH_SHORT).show()
-  }
-
   override fun onDestroy() {
     super.onDestroy()
     Log.d(TAG, "onDestroy")
 
     supervisorJob.cancel()
-
-    Toast.makeText(this, "Foreground Service destroyed", Toast.LENGTH_SHORT).show()
   }
 
   /**
@@ -81,13 +64,19 @@ class AppService : Service() {
    */
   private fun startAsForegroundService() {
     // create the notification channel
-    NotificationUtils.createNotificationChannel(this)
+
+    val notification = NotificationCompat.Builder(this, GENERAL_NOTIFICATION_CHANNEL_ID)
+      .setContentTitle(this.getString(app_name))
+      .setSmallIcon(ic_notification)
+      .setForegroundServiceBehavior(FOREGROUND_SERVICE_IMMEDIATE)
+      .setContentIntent(getActivity(this, 0, Intent(this, MainActivity::class.java), FLAG_IMMUTABLE))
+      .build()
 
     // promote service to foreground service
     ServiceCompat.startForeground(
       this,
-      1,
-      NotificationUtils.buildNotification(this),
+      SERVICE_NOTIFICATION_ID,
+      notification,
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
         ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
       } else {
@@ -95,4 +84,24 @@ class AppService : Service() {
       }
     )
   }
+
+  private suspend fun updateNextAlarm() {
+    val dataSource = CalendarDataSource(contentResolver)
+    val event = dataSource.getNextEvent(listOf("Foo", "Bar"))
+    when (event) {
+      null -> cancelAlarm()
+      else -> scheduleAlarm(event)
+    }
+  }
+
+  private fun scheduleAlarm(event: Event) {
+    Log.i(TAG, "Scheduling alarm for event '${event.title}' at ${event.begin.toLocalTimeString()}")
+    alarmScheduler.schedule(Alarm(event.title, event.begin))
+  }
+
+  private fun cancelAlarm() {
+    Log.i(TAG, "No alarm events found, canceling alarm")
+    alarmScheduler.cancel()
+  }
+
 }

@@ -58,7 +58,8 @@ private fun ContentResolver.queryInstances(start: Long, end: Long, selection: St
     .build()
 
   val selectionArgs = args?.map { it.toString() }?.toTypedArray()
-  return query(uri, PROJECTION, selection, selectionArgs, Instances.BEGIN)
+  val fullSelection = selection //+ " AND ${Instances.BEGIN} > $start"
+  return query(uri, PROJECTION, fullSelection, selectionArgs, Instances.BEGIN)
 }
 
 private fun Uri.Builder.append(long: Long) = ContentUris.appendId(this, long)

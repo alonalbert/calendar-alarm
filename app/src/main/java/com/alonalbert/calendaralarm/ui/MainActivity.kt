@@ -2,6 +2,7 @@ package com.alonalbert.calendaralarm.ui
 
 import android.Manifest.permission.POST_NOTIFICATIONS
 import android.Manifest.permission.READ_CALENDAR
+import android.app.NotificationManager
 import android.content.ComponentName
 import android.content.Intent
 import android.content.ServiceConnection
@@ -22,9 +23,14 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.core.app.NotificationCompat
+import androidx.core.content.ContextCompat
 import com.alonalbert.calendaralarm.AppService
+import com.alonalbert.calendaralarm.R
 import com.alonalbert.calendaralarm.TAG
+import com.alonalbert.calendaralarm.alarm.AlarmBroadcastReceiver.Companion.createDismiss
 import com.alonalbert.calendaralarm.ui.theme.CalendarAlarmTheme
+import com.alonalbert.calendaralarm.utils.Notifications.ALARM_NOTIFICATION_CHANNEL_ID
 
 class MainActivity : ComponentActivity() {
   // needed to communicate with the service.
@@ -54,8 +60,6 @@ class MainActivity : ComponentActivity() {
     }
 
     checkAndRequestPermissions()
-
-    tryToBindToServiceIfRunning()
   }
 
   override fun onDestroy() {
@@ -73,12 +77,11 @@ class MainActivity : ComponentActivity() {
         add(POST_NOTIFICATIONS)
       }
     }
-    registerForActivityResult(
-      ActivityResultContracts.RequestMultiplePermissions()
-    ) { permissions ->
+    registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { results ->
+
       when {
-        permissions[READ_CALENDAR] == true -> startForegroundService()
-        else -> Toast.makeText(this, "Calendar permission is required!", LENGTH_SHORT).show()
+        results[READ_CALENDAR] == true -> startForegroundService()
+        else -> {} // Toast.makeText(this, "Calendar permission is required!", LENGTH_SHORT).show()
       }
     }.launch(permissions.toTypedArray())
 
@@ -92,15 +95,6 @@ class MainActivity : ComponentActivity() {
   private fun startForegroundService() {
     // start the service
     startForegroundService(Intent(this, AppService::class.java))
-
-    // bind to the service to update UI
-    tryToBindToServiceIfRunning()
-  }
-
-  private fun tryToBindToServiceIfRunning() {
-    Intent(this, AppService::class.java).also { intent ->
-      bindService(intent, connection, 0)
-    }
   }
 }
 
