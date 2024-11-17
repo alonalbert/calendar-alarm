@@ -9,6 +9,7 @@ import android.content.Context
 import android.content.Intent
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationCompat.CATEGORY_ALARM
 import androidx.core.content.ContextCompat
 import com.alonalbert.calendaralarm.R
 import com.alonalbert.calendaralarm.TAG
@@ -54,14 +55,15 @@ class AlarmBroadcastReceiver : BroadcastReceiver() {
       .setColor(ContextCompat.getColor(applicationContext, R.color.purple_500))
       .addAction(R.drawable.ic_close, getString(R.string.dismiss), createDismiss(this))
       .setOngoing(true)
+      .setCategory(CATEGORY_ALARM)
       .build()
 
-    notificationManager.notify(1, notification)
+    notificationManager.notify(ALARM_NOTIFICATION_ID, notification)
   }
 
   private fun Context.dismissAlarm() {
     Log.i(TAG, "AlarmBroadcastReceiver: Dismiss")
-    getSystemService(NotificationManager::class.java).cancel("tag", ALARM_NOTIFICATION_ID)
+    getSystemService(NotificationManager::class.java).cancel(ALARM_NOTIFICATION_ID)
   }
 
   companion object {
