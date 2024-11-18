@@ -3,7 +3,6 @@ package com.alonalbert.calendaralarm.ui
 import android.Manifest.permission.POST_NOTIFICATIONS
 import android.Manifest.permission.READ_CALENDAR
 import android.content.ComponentName
-import android.content.Intent
 import android.content.ServiceConnection
 import android.os.Build
 import android.os.Bundle
@@ -74,21 +73,11 @@ class MainActivity : ComponentActivity() {
     registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { results ->
 
       when {
-        results[READ_CALENDAR] == true -> startForegroundService()
+        results[READ_CALENDAR] == true -> AppService.start(this)
         else -> {} // Toast.makeText(this, "Calendar permission is required!", LENGTH_SHORT).show()
       }
     }.launch(permissions.toTypedArray())
 
-  }
-
-  /**
-   * Creates and starts the ExampleLocationForegroundService as a foreground service.
-   *
-   * It also tries to bind to the service to update the UI with location updates.
-   */
-  private fun startForegroundService() {
-    // start the service
-    startForegroundService(Intent(this, AppService::class.java))
   }
 
   @Composable
