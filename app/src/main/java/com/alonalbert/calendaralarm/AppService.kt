@@ -19,7 +19,6 @@ import com.alonalbert.calendaralarm.calendar.CalendarDataSource
 import com.alonalbert.calendaralarm.calendar.Event
 import com.alonalbert.calendaralarm.calendar.register
 import com.alonalbert.calendaralarm.ui.MainActivity
-import com.alonalbert.calendaralarm.utils.Notifications
 import com.alonalbert.calendaralarm.utils.Notifications.GENERAL_NOTIFICATION_CHANNEL_ID
 import com.alonalbert.calendaralarm.utils.Notifications.SERVICE_NOTIFICATION_ID
 import com.alonalbert.calendaralarm.utils.toLocalTimeString
@@ -87,7 +86,7 @@ class AppService : Service() {
 
   private suspend fun updateNextAlarm() {
     val dataSource = CalendarDataSource(contentResolver)
-    val event = dataSource.getNextEvent(listOf("Foo", "Bar"))
+    val event = dataSource.getNextEvent(listOf())
     when (event) {
       null -> cancelAlarm()
       else -> scheduleAlarm(event)

@@ -4,8 +4,11 @@ import android.content.ContentResolver
 import android.content.ContentUris
 import android.database.Cursor
 import android.net.Uri
+import android.provider.CalendarContract.Calendars
 import android.provider.CalendarContract.Events
 import android.provider.CalendarContract.Instances
+import android.util.Log
+import com.alonalbert.calendaralarm.TAG
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.time.Instant
@@ -32,8 +35,18 @@ class CalendarDataSource(private val contentResolver: ContentResolver) {
     val start = System.currentTimeMillis()
     val end = start + 7.days.inWholeMilliseconds
     return withContext(Dispatchers.IO) {
-      val search = searchTerms.joinToString(separator = " OR ") { "${Events.TITLE} LIKE '%$it%'" }
-      val selection = "$EVENT_SELECTION AND ($search)"
+      val calendars = contentResolver.loadCalendars()
+      val selection = buildString {
+        append(EVENT_SELECTION)
+        append(" AND (")
+        append(calendars.keys.joinToString(separator = " OR ") { "${Events.CALENDAR_ID} = $it" })
+        append(")")
+        if (searchTerms.isNotEmpty()) {
+          append(" AND (")
+          append(searchTerms.joinToString(separator = " OR ") { "${Events.TITLE} LIKE '%$it%'" })
+          append(")")
+        }
+      }
       val cursor = contentResolver.queryInstances(start, end, selection) ?: return@withContext null
       cursor.use {
         when (cursor.moveToNext()) {
@@ -60,6 +73,28 @@ private fun ContentResolver.queryInstances(start: Long, end: Long, selection: St
   val selectionArgs = args?.map { it.toString() }?.toTypedArray()
   val fullSelection = selection + " AND ${Instances.BEGIN} > $start"
   return query(uri, PROJECTION, fullSelection, selectionArgs, Instances.BEGIN)
+}
+
+private fun ContentResolver.loadCalendars(): Map<Long, String> {
+  val cursor = query(
+    Calendars.CONTENT_URI,
+    arrayOf(
+      Calendars._ID,
+      Calendars.CALENDAR_DISPLAY_NAME,
+      Calendars.OWNER_ACCOUNT,
+    ),
+    "${Calendars.OWNER_ACCOUNT} NOT LIKE '%.calendar.google.com'",
+    null,
+    null
+  )
+  return buildMap {
+    cursor?.use {
+      while (cursor.moveToNext()) {
+        Log.i(TAG, "${cursor.getString(2)} - ${cursor.getString(1)}")
+        put(cursor.getLong(0), cursor.getString(1))
+      }
+    }
+  }
 }
 
 private fun Uri.Builder.append(long: Long) = ContentUris.appendId(this, long)
