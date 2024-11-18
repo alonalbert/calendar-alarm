@@ -84,6 +84,7 @@ class AlarmBroadcastReceiver : BroadcastReceiver() {
       @SuppressLint("MissingPermission")
       notificationManager.notify(ALARM_NOTIFICATION_ID, notification)
       MediaManager.instance.start(applicationContext)
+      AppService.start(context)
     }
   }
 }

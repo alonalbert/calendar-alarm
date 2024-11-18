@@ -30,7 +30,6 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 
 class AppService : Service() {
-
   private val supervisorJob = SupervisorJob()
   private val coroutineScope = CoroutineScope(supervisorJob)
   private val alarmScheduler by lazy(mode = LazyThreadSafetyMode.SYNCHRONIZED) { AlarmScheduler(this) }
@@ -87,12 +86,14 @@ class AppService : Service() {
     )
   }
 
-  private suspend fun updateNextAlarm() {
-    val dataSource = CalendarDataSource(contentResolver)
-    val event = dataSource.getNextEvent(listOf())
-    when (event) {
-      null -> cancelAlarm()
-      else -> scheduleAlarm(event)
+  private fun updateNextAlarm() {
+    coroutineScope.launch {
+      val dataSource = CalendarDataSource(contentResolver)
+      val event = dataSource.getNextEvent(listOf())
+      when (event) {
+        null -> cancelAlarm()
+        else -> scheduleAlarm(event)
+      }
     }
   }
 
@@ -114,5 +115,4 @@ class AppService : Service() {
       context.startForegroundService(Intent(context, AppService::class.java))
     }
   }
-
 }
