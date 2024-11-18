@@ -2,7 +2,6 @@ package com.alonalbert.calendaralarm.ui
 
 import android.Manifest.permission.POST_NOTIFICATIONS
 import android.Manifest.permission.READ_CALENDAR
-import android.app.NotificationManager
 import android.content.ComponentName
 import android.content.Intent
 import android.content.ServiceConnection
@@ -10,8 +9,6 @@ import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
 import android.util.Log
-import android.widget.Toast
-import android.widget.Toast.LENGTH_SHORT
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -19,18 +16,15 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.core.app.NotificationCompat
-import androidx.core.content.ContextCompat
 import com.alonalbert.calendaralarm.AppService
-import com.alonalbert.calendaralarm.R
 import com.alonalbert.calendaralarm.TAG
-import com.alonalbert.calendaralarm.alarm.AlarmBroadcastReceiver.Companion.createDismiss
+import com.alonalbert.calendaralarm.alarm.AlarmBroadcastReceiver.Companion.triggerAlarm
 import com.alonalbert.calendaralarm.ui.theme.CalendarAlarmTheme
-import com.alonalbert.calendaralarm.utils.Notifications.ALARM_NOTIFICATION_CHANNEL_ID
 
 class MainActivity : ComponentActivity() {
   // needed to communicate with the service.
@@ -96,12 +90,14 @@ class MainActivity : ComponentActivity() {
     // start the service
     startForegroundService(Intent(this, AppService::class.java))
   }
-}
 
-@Composable
-fun App(modifier: Modifier = Modifier) {
-  Box(modifier = modifier) {
-    Text("Get Calendars")
+  @Composable
+  private fun App(modifier: Modifier = Modifier) {
+    Box(modifier = modifier) {
+      Button(onClick = { triggerAlarm("Test") }) {
+        Text("Trigger Alarm")
+      }
+    }
   }
 }
 
