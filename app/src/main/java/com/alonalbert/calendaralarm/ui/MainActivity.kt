@@ -2,62 +2,46 @@ package com.alonalbert.calendaralarm.ui
 
 import android.Manifest.permission.POST_NOTIFICATIONS
 import android.Manifest.permission.READ_CALENDAR
-import android.content.ComponentName
-import android.content.ServiceConnection
 import android.os.Build
 import android.os.Bundle
-import android.os.IBinder
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Button
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import com.alonalbert.calendaralarm.AppService
-import com.alonalbert.calendaralarm.TAG
 import com.alonalbert.calendaralarm.alarm.AlarmBroadcastReceiver
+import com.alonalbert.calendaralarm.calendar.Event
 import com.alonalbert.calendaralarm.ui.theme.CalendarAlarmTheme
+import com.alonalbert.calendaralarm.utils.toLocalTimeString
+import java.time.Instant
 
 class MainActivity : ComponentActivity() {
-  // needed to communicate with the service.
-  private val connection = object : ServiceConnection {
-
-    override fun onServiceConnected(className: ComponentName, service: IBinder) {
-      // we've bound to ExampleLocationForegroundService, cast the IBinder and get ExampleLocationForegroundService instance.
-      Log.d(TAG, "onServiceConnected")
-    }
-
-    override fun onServiceDisconnected(arg0: ComponentName) {
-      // This is called when the connection with the service has been disconnected. Clean up.
-      Log.d(TAG, "onServiceDisconnected")
-    }
-  }
-
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
+
+    checkAndRequestPermissions()
 
     enableEdgeToEdge()
     setContent {
       CalendarAlarmTheme {
         Scaffold(modifier = Modifier.Companion.fillMaxSize()) { innerPadding ->
-          App(modifier = Modifier.Companion.padding(innerPadding))
+          MainScreen(null, { AlarmBroadcastReceiver.triggerAlarm(this, "Test") }, modifier = Modifier.Companion.padding(innerPadding))
         }
       }
     }
-
-    checkAndRequestPermissions()
   }
 
   override fun onDestroy() {
     super.onDestroy()
-    unbindService(connection)
   }
 
   /**
@@ -78,15 +62,6 @@ class MainActivity : ComponentActivity() {
       }
     }.launch(permissions.toTypedArray())
 
-  }
-
-  @Composable
-  private fun App(modifier: Modifier = Modifier) {
-    Box(modifier = modifier) {
-      Button(onClick = { AlarmBroadcastReceiver.triggerAlarm(this@MainActivity, "Test") }) {
-        Text("Trigger Alarm")
-      }
-    }
   }
 }
 
