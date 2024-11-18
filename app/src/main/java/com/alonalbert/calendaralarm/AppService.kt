@@ -12,6 +12,7 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE
 import androidx.core.app.ServiceCompat
+import com.alonalbert.calendaralarm.App.Companion.getDatabase
 import com.alonalbert.calendaralarm.R.drawable.ic_notification
 import com.alonalbert.calendaralarm.R.string.app_name
 import com.alonalbert.calendaralarm.alarm.Alarm
@@ -19,6 +20,7 @@ import com.alonalbert.calendaralarm.alarm.AlarmScheduler
 import com.alonalbert.calendaralarm.calendar.CalendarDataSource
 import com.alonalbert.calendaralarm.calendar.Event
 import com.alonalbert.calendaralarm.calendar.register
+import com.alonalbert.calendaralarm.db.NextEvent
 import com.alonalbert.calendaralarm.ui.MainActivity
 import com.alonalbert.calendaralarm.utils.Notifications.GENERAL_NOTIFICATION_CHANNEL_ID
 import com.alonalbert.calendaralarm.utils.Notifications.SERVICE_NOTIFICATION_ID
@@ -33,9 +35,9 @@ class AppService : Service() {
   private val coroutineScope = CoroutineScope(supervisorJob)
   private val alarmScheduler by lazy(mode = LazyThreadSafetyMode.SYNCHRONIZED) { AlarmScheduler(this) }
 
-  override fun onBind(intent: Intent?) = null
+  override fun onBind(intent: Intent) = null
 
-  override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+  override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
     Log.d(TAG, "AppService.onStartCommand")
 
     startAsForegroundService()
@@ -94,14 +96,17 @@ class AppService : Service() {
     }
   }
 
-  private fun scheduleAlarm(event: Event) {
+  private suspend fun scheduleAlarm(event: Event) {
     Log.i(TAG, "Scheduling alarm for event '${event.title}' at ${event.begin.toLocalTimeString()}")
     alarmScheduler.schedule(Alarm(event.title, event.begin))
+    application.getDatabase().nextEventDao().upsert(NextEvent(0, event.title, event.begin.epochSecond))
   }
 
-  private fun cancelAlarm() {
+  private suspend fun cancelAlarm() {
     Log.i(TAG, "No alarm events found, canceling alarm")
     alarmScheduler.cancel()
+    application.getDatabase().nextEventDao().upsert(NextEvent(0, "None", -1))
+
   }
 
   companion object {

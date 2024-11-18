@@ -5,10 +5,20 @@ import androidx.core.app.NotificationChannelCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.app.NotificationManagerCompat.IMPORTANCE_HIGH
 import androidx.core.app.NotificationManagerCompat.IMPORTANCE_MAX
+import androidx.room.Room
+import com.alonalbert.calendaralarm.db.AppDatabase
 import com.alonalbert.calendaralarm.utils.Notifications.ALARM_NOTIFICATION_CHANNEL_ID
 import com.alonalbert.calendaralarm.utils.Notifications.GENERAL_NOTIFICATION_CHANNEL_ID
 
 class App : Application() {
+  private val database by lazy {
+    Room.databaseBuilder(
+      applicationContext,
+      AppDatabase::class.java,
+      "app-database.db"
+    ).build()
+  }
+
   override fun onCreate() {
     super.onCreate()
 
@@ -26,5 +36,9 @@ class App : Application() {
       .setSound(null, null)
       .build()
     notificationManager.createNotificationChannelsCompat(listOf(generalChannel, alarmChannel))
+  }
+
+  companion object {
+    fun Application.getDatabase() = (this as App).database
   }
 }
