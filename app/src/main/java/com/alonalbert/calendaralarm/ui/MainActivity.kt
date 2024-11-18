@@ -22,7 +22,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.alonalbert.calendaralarm.AppService
 import com.alonalbert.calendaralarm.TAG
-import com.alonalbert.calendaralarm.alarm.AlarmBroadcastReceiver.Companion.triggerAlarm
+import com.alonalbert.calendaralarm.alarm.AlarmBroadcastReceiver
 import com.alonalbert.calendaralarm.ui.theme.CalendarAlarmTheme
 
 class MainActivity : ComponentActivity() {
@@ -83,7 +83,7 @@ class MainActivity : ComponentActivity() {
   @Composable
   private fun App(modifier: Modifier = Modifier) {
     Box(modifier = modifier) {
-      Button(onClick = { triggerAlarm("Test") }) {
+      Button(onClick = { AlarmBroadcastReceiver.triggerAlarm(this@MainActivity, "Test") }) {
         Text("Trigger Alarm")
       }
     }

@@ -1,5 +1,6 @@
 package com.alonalbert.calendaralarm.alarm
 
+import android.annotation.SuppressLint
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.PendingIntent.FLAG_IMMUTABLE
@@ -11,10 +12,12 @@ import android.content.Intent.ACTION_BOOT_COMPLETED
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationCompat.CATEGORY_ALARM
+import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import com.alonalbert.calendaralarm.AppService
 import com.alonalbert.calendaralarm.R
 import com.alonalbert.calendaralarm.TAG
+import com.alonalbert.calendaralarm.media.MediaManager
 import com.alonalbert.calendaralarm.ui.MainActivity
 import com.alonalbert.calendaralarm.utils.Notifications.ALARM_NOTIFICATION_CHANNEL_ID
 import com.alonalbert.calendaralarm.utils.Notifications.ALARM_NOTIFICATION_ID
@@ -22,7 +25,9 @@ import com.alonalbert.calendaralarm.utils.Notifications.ALARM_NOTIFICATION_ID
 private const val REQUEST_CODE_TRIGGER = 10
 private const val REQUEST_CODE_DISMISS = 11
 private const val REQUEST_CODE_FULL_SCREEN_NOTIFICATION = 12
-
+private const val TITLE = "TITLE"
+private const val ACTION_TRIGGER = "ACTION_TRIGGER"
+private const val ACTION_DISMISS = "ACTION_DISMISS"
 
 private const val INTENT_FLAGS = FLAG_IMMUTABLE or FLAG_UPDATE_CURRENT
 
@@ -36,16 +41,7 @@ class AlarmBroadcastReceiver : BroadcastReceiver() {
     }
   }
 
-  private fun Context.dismissAlarm() {
-    Log.i(TAG, "AlarmBroadcastReceiver: Dismiss")
-    getSystemService(NotificationManager::class.java).cancel(ALARM_NOTIFICATION_ID)
-  }
-
   companion object {
-    const val TITLE = "TITLE"
-    const val ACTION_TRIGGER = "ACTION_TRIGGER"
-    const val ACTION_DISMISS = "ACTION_DISMISS"
-
     fun createTrigger(context: Context, alarm: Alarm? = null): PendingIntent {
       val intent = Intent(context, AlarmBroadcastReceiver::class.java).setAction(ACTION_TRIGGER).apply {
         if (alarm != null) {
@@ -60,15 +56,16 @@ class AlarmBroadcastReceiver : BroadcastReceiver() {
       )
     }
 
-    fun Context.triggerAlarm(title: String) {
+    fun triggerAlarm(context: Context, title: String) {
+      val applicationContext = context.applicationContext
       Log.i(TAG, "AlarmBroadcastReceiver: Alarm '$title' triggered")
-      val notificationManager = getSystemService(NotificationManager::class.java)
+      val notificationManager = NotificationManagerCompat.from(applicationContext)
 
       // TODO: Make this open event in calendar
       val fullScreenIntent = PendingIntent.getActivity(
         applicationContext,
         REQUEST_CODE_FULL_SCREEN_NOTIFICATION,
-        Intent(this, MainActivity::class.java),
+        Intent(applicationContext, MainActivity::class.java),
         INTENT_FLAGS,
       )
 
@@ -79,27 +76,35 @@ class AlarmBroadcastReceiver : BroadcastReceiver() {
         .setContentIntent(fullScreenIntent)
         .setFullScreenIntent(fullScreenIntent, true)
         .setColor(ContextCompat.getColor(applicationContext, R.color.purple_500))
-        .addAction(R.drawable.ic_close, getString(R.string.dismiss), createDismiss(this))
+        .addAction(R.drawable.ic_close, applicationContext.getString(R.string.dismiss), createDismiss(applicationContext))
         .setOngoing(true)
         .setCategory(CATEGORY_ALARM)
         .build()
 
+      @SuppressLint("MissingPermission")
       notificationManager.notify(ALARM_NOTIFICATION_ID, notification)
-    }
-
-    fun Context.triggerAlarm(intent: Intent) {
-      val title = intent.getStringExtra(TITLE) ?: throw IllegalStateException("Intent is missing $TITLE")
-      triggerAlarm(title)
-    }
-
-    private fun createDismiss(context: Context): PendingIntent {
-      val intent = Intent(context, AlarmBroadcastReceiver::class.java).setAction(ACTION_DISMISS)
-      return PendingIntent.getBroadcast(
-        context,
-        REQUEST_CODE_DISMISS,
-        intent,
-        INTENT_FLAGS,
-      )
+      MediaManager.instance.start(applicationContext)
     }
   }
+}
+
+fun Context.triggerAlarm(intent: Intent) {
+  val title = intent.getStringExtra(TITLE) ?: throw IllegalStateException("Intent is missing $TITLE")
+  AlarmBroadcastReceiver.triggerAlarm(this, title)
+}
+
+private fun createDismiss(context: Context): PendingIntent {
+  val intent = Intent(context, AlarmBroadcastReceiver::class.java).setAction(ACTION_DISMISS)
+  return PendingIntent.getBroadcast(
+    context,
+    REQUEST_CODE_DISMISS,
+    intent,
+    INTENT_FLAGS,
+  )
+}
+
+private fun Context.dismissAlarm() {
+  Log.i(TAG, "AlarmBroadcastReceiver: Dismiss")
+  getSystemService(NotificationManager::class.java).cancel(ALARM_NOTIFICATION_ID)
+  MediaManager.instance.stop()
 }

@@ -6,6 +6,7 @@ import android.os.Build
 import android.util.Log
 import com.alonalbert.calendaralarm.TAG
 import com.alonalbert.calendaralarm.utils.toLocalTimeString
+import kotlin.time.Duration.Companion.milliseconds
 
 class AlarmScheduler(context: Context) {
   private val applicationContext = context.applicationContext
@@ -20,7 +21,8 @@ class AlarmScheduler(context: Context) {
         alarm.time.toEpochMilli(),
         AlarmBroadcastReceiver.createTrigger(applicationContext, alarm),
       )
-      Log.i(TAG, "Scheduled alarm for ${alarm.time.toLocalTimeString()}")
+      val duration = (alarm.time.toEpochMilli() - System.currentTimeMillis()).milliseconds
+      Log.i(TAG, "Scheduled alarm for ${alarm.time.toLocalTimeString()} (triggers in $duration)")
     }
   }
 

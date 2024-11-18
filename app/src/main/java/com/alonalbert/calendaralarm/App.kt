@@ -1,12 +1,12 @@
 package com.alonalbert.calendaralarm
 
 import android.app.Application
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.app.NotificationManager.IMPORTANCE_DEFAULT
-import android.app.NotificationManager.IMPORTANCE_HIGH
-import com.alonalbert.calendaralarm.utils.Notifications.GENERAL_NOTIFICATION_CHANNEL_ID
+import androidx.core.app.NotificationChannelCompat
+import androidx.core.app.NotificationManagerCompat
+import androidx.core.app.NotificationManagerCompat.IMPORTANCE_HIGH
+import androidx.core.app.NotificationManagerCompat.IMPORTANCE_MAX
 import com.alonalbert.calendaralarm.utils.Notifications.ALARM_NOTIFICATION_CHANNEL_ID
+import com.alonalbert.calendaralarm.utils.Notifications.GENERAL_NOTIFICATION_CHANNEL_ID
 
 class App : Application() {
   override fun onCreate() {
@@ -16,20 +16,15 @@ class App : Application() {
   }
 
   private fun createNotificationChannels() {
-    val notificationManager = getSystemService(NotificationManager::class.java)
-    notificationManager.createNotificationChannel(
-      NotificationChannel(
-        GENERAL_NOTIFICATION_CHANNEL_ID,
-        getString(R.string.general_channel_name),
-        IMPORTANCE_DEFAULT
-      )
-    )
-    notificationManager.createNotificationChannel(
-      NotificationChannel(
-        ALARM_NOTIFICATION_CHANNEL_ID,
-        getString(R.string.alarm_channel_name),
-        IMPORTANCE_HIGH
-      )
-    )
+    val notificationManager = NotificationManagerCompat.from(applicationContext)
+    val generalChannel = NotificationChannelCompat.Builder(GENERAL_NOTIFICATION_CHANNEL_ID, IMPORTANCE_HIGH)
+      .setName(getString(R.string.general_channel_name))
+      .setSound(null, null)
+      .build()
+    val alarmChannel = NotificationChannelCompat.Builder(ALARM_NOTIFICATION_CHANNEL_ID, IMPORTANCE_MAX)
+      .setName(getString(R.string.alarm_channel_name))
+      .setSound(null, null)
+      .build()
+    notificationManager.createNotificationChannelsCompat(listOf(generalChannel, alarmChannel))
   }
 }
