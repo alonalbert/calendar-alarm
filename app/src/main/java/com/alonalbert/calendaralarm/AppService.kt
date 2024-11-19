@@ -106,7 +106,7 @@ class AppService : Service() {
   private suspend fun scheduleAlarm(event: Event) {
     Log.i(TAG, "Scheduling alarm for event '${event.title}' at ${event.begin.toLocalTimeString()}")
     alarmScheduler.schedule(Alarm(event.title, event.begin))
-    application.getDatabase().nextEventDao().upsert(NextEvent(0, event.title, event.begin.epochSecond))
+    application.getDatabase().nextEventDao().upsert(NextEvent(0, event.title, event.begin.toEpochMilli()))
   }
 
   private suspend fun cancelAlarm() {
