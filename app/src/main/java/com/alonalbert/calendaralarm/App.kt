@@ -3,7 +3,7 @@ package com.alonalbert.calendaralarm
 import android.app.Application
 import androidx.core.app.NotificationChannelCompat
 import androidx.core.app.NotificationManagerCompat
-import androidx.core.app.NotificationManagerCompat.IMPORTANCE_HIGH
+import androidx.core.app.NotificationManagerCompat.IMPORTANCE_MIN
 import androidx.core.app.NotificationManagerCompat.IMPORTANCE_MAX
 import androidx.room.Room
 import com.alonalbert.calendaralarm.db.AppDatabase
@@ -27,7 +27,7 @@ class App : Application() {
 
   private fun createNotificationChannels() {
     val notificationManager = NotificationManagerCompat.from(applicationContext)
-    val generalChannel = NotificationChannelCompat.Builder(GENERAL_NOTIFICATION_CHANNEL_ID, IMPORTANCE_HIGH)
+    val generalChannel = NotificationChannelCompat.Builder(GENERAL_NOTIFICATION_CHANNEL_ID, IMPORTANCE_MIN)
       .setName(getString(R.string.general_channel_name))
       .setSound(null, null)
       .build()
