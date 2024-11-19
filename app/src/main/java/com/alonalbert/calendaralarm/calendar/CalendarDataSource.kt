@@ -38,9 +38,11 @@ class CalendarDataSource(private val contentResolver: ContentResolver) {
       val calendars = contentResolver.loadCalendars()
       val selection = buildString {
         append(EVENT_SELECTION)
-        append(" AND (")
-        append(calendars.keys.joinToString(separator = " OR ") { "${Events.CALENDAR_ID} = $it" })
-        append(")")
+        if (calendars.isNotEmpty()) {
+          append(" AND (")
+          append(calendars.keys.joinToString(separator = " OR ") { "${Events.CALENDAR_ID} = $it" })
+          append(")")
+        }
         if (searchTerms.isNotEmpty()) {
           append(" AND (")
           append(searchTerms.joinToString(separator = " OR ") { "${Events.TITLE} LIKE '%$it%'" })
