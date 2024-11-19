@@ -16,7 +16,7 @@ fun ContentResolver.register(uri: Uri): Flow<Boolean> {
         trySend(selfChange)
       }
     }
-    registerContentObserver(uri, false, observer)
+    registerContentObserver(uri, true, observer)
     awaitClose {
       unregisterContentObserver(observer)
     }
