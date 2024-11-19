@@ -92,7 +92,6 @@ private fun ContentResolver.loadCalendars(): Map<Long, String> {
   return buildMap {
     cursor?.use {
       while (cursor.moveToNext()) {
-        Log.i(TAG, "${cursor.getString(2)} - ${cursor.getString(1)}")
         put(cursor.getLong(0), cursor.getString(1))
       }
     }

@@ -36,6 +36,18 @@ class AppService : Service() {
 
   override fun onBind(intent: Intent) = null
 
+  override fun onCreate() {
+    Log.d(TAG, "AppService.onCreate")
+    super.onCreate()
+
+    coroutineScope.launch {
+      contentResolver.register(CalendarContract.CONTENT_URI).collect {
+        Log.i(TAG, "Events changed")
+        updateNextAlarm()
+      }
+    }
+  }
+
   override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
     Log.d(TAG, "AppService.onStartCommand")
 
@@ -43,10 +55,6 @@ class AppService : Service() {
 
     coroutineScope.launch {
       updateNextAlarm()
-      contentResolver.register(CalendarContract.CONTENT_URI).collect {
-        Log.i(TAG, "Events changed")
-        updateNextAlarm()
-      }
     }
     return super.onStartCommand(intent, flags, startId)
   }
@@ -86,14 +94,12 @@ class AppService : Service() {
     )
   }
 
-  private fun updateNextAlarm() {
-    coroutineScope.launch {
-      val dataSource = CalendarDataSource(contentResolver)
-      val event = dataSource.getNextEvent(listOf())
-      when (event) {
-        null -> cancelAlarm()
-        else -> scheduleAlarm(event)
-      }
+  private suspend fun updateNextAlarm() {
+    val dataSource = CalendarDataSource(contentResolver)
+    val event = dataSource.getNextEvent(listOf())
+    when (event) {
+      null -> cancelAlarm()
+      else -> scheduleAlarm(event)
     }
   }
 
@@ -112,6 +118,7 @@ class AppService : Service() {
 
   companion object {
     fun start(context: Context) {
+      Log.i(TAG, "Start service")
       context.startForegroundService(Intent(context, AppService::class.java))
     }
   }

@@ -33,6 +33,7 @@ private const val INTENT_FLAGS = FLAG_IMMUTABLE or FLAG_UPDATE_CURRENT
 
 class AlarmBroadcastReceiver : BroadcastReceiver() {
   override fun onReceive(context: Context, intent: Intent) {
+    Log.i(TAG, "AlarmBroadcastReceiver: action=${intent.action}")
     when (intent.action) {
       ACTION_BOOT_COMPLETED -> AppService.start(context)
       ACTION_TRIGGER -> context.triggerAlarm(intent)
