@@ -2,8 +2,12 @@ package com.alonalbert.calendaralarm.ui
 
 import android.Manifest.permission.POST_NOTIFICATIONS
 import android.Manifest.permission.READ_CALENDAR
-import android.os.Build
+import android.app.AlarmManager
+import android.content.Intent
+import android.os.Build.VERSION_CODES.TIRAMISU
 import android.os.Bundle
+import android.provider.Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -12,9 +16,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
+import androidx.core.app.AlarmManagerCompat
 import com.alonalbert.calendaralarm.AppService
+import com.alonalbert.calendaralarm.TAG
 import com.alonalbert.calendaralarm.alarm.AlarmBroadcastReceiver
 import com.alonalbert.calendaralarm.ui.theme.CalendarAlarmTheme
+import com.alonalbert.calendaralarm.utils.isAtLeast
 
 class MainActivity : ComponentActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
@@ -40,17 +47,24 @@ class MainActivity : ComponentActivity() {
    * Check for notification permission before starting the service so that the notification is visible
    */
   private fun checkAndRequestPermissions() {
+    if (isAtLeast(TIRAMISU)) {
+      if (!AlarmManagerCompat.canScheduleExactAlarms(getSystemService(AlarmManager::class.java))) {
+        // TODO: Register AlarmManager.ACTION_SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED receiver and handle UI
+        startActivity(Intent(ACTION_REQUEST_SCHEDULE_EXACT_ALARM))
+      }
+    }
     val permissions = buildList {
       add(READ_CALENDAR)
-      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+      if (isAtLeast(TIRAMISU)) {
         add(POST_NOTIFICATIONS)
       }
     }
     registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { results ->
-
-      when {
-        results[READ_CALENDAR] == true -> AppService.start(this)
-        else -> {} // Toast.makeText(this, "Calendar permission is required!", LENGTH_SHORT).show()
+      if (results.count { it.value } == permissions.size) {
+        AppService.start(this)
+      } else {
+        // TODO: Update UI
+        Log.e(TAG, "Required permissions not granted")
       }
     }.launch(permissions.toTypedArray())
 
