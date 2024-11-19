@@ -36,7 +36,7 @@ class AppService : Service() {
 
   override fun onBind(intent: Intent) = null
 
-  override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
+  override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
     Log.d(TAG, "AppService.onStartCommand")
 
     startAsForegroundService()
