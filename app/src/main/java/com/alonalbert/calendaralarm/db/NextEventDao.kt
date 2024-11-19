@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface NextEventDao {
   @Query("SELECT * FROM next_event LIMIT 1")
-  fun observe(): Flow<NextEvent>
+  fun observe(): Flow<NextEvent?>
 
   @Upsert
   suspend fun upsert(nextEvent: NextEvent)

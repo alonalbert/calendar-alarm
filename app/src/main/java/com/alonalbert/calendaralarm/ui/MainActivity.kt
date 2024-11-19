@@ -10,19 +10,11 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.Button
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import com.alonalbert.calendaralarm.AppService
 import com.alonalbert.calendaralarm.alarm.AlarmBroadcastReceiver
-import com.alonalbert.calendaralarm.calendar.Event
 import com.alonalbert.calendaralarm.ui.theme.CalendarAlarmTheme
-import com.alonalbert.calendaralarm.utils.toLocalTimeString
-import java.time.Instant
 
 class MainActivity : ComponentActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
@@ -34,7 +26,7 @@ class MainActivity : ComponentActivity() {
     setContent {
       CalendarAlarmTheme {
         Scaffold(modifier = Modifier.Companion.fillMaxSize()) { innerPadding ->
-          MainScreen(null, { AlarmBroadcastReceiver.triggerAlarm(this, "Test") }, modifier = Modifier.Companion.padding(innerPadding))
+          MainScreen({ AlarmBroadcastReceiver.triggerAlarm(this, "Test") }, modifier = Modifier.Companion.padding(innerPadding))
         }
       }
     }
