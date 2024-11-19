@@ -26,7 +26,7 @@ private const val BEGIN_IDX = 1
 private val EVENT_SELECTION = """
   TRUE
   AND ${Events.ALL_DAY} = 0 
-  AND ${Events.STATUS} = ${Events.STATUS_CONFIRMED}  
+  AND ${Events.SELF_ATTENDEE_STATUS} = ${Events.STATUS_CONFIRMED}  
 """.trimIndent()
 
 class CalendarDataSource(private val contentResolver: ContentResolver) {
