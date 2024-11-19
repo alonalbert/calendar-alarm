@@ -43,7 +43,7 @@ class AppService : Service() {
 
     coroutineScope.launch {
       updateNextAlarm()
-      contentResolver.register(CalendarContract.Events.CONTENT_URI).collect {
+      contentResolver.register(CalendarContract.CONTENT_URI).collect {
         Log.i(TAG, "Events changed")
         updateNextAlarm()
       }
