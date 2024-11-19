@@ -9,19 +9,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.alonalbert.calendaralarm.AppService
 import com.alonalbert.calendaralarm.calendar.Event
 import com.alonalbert.calendaralarm.utils.toLocalTimeString
 import java.time.Instant
 
 @Composable
-fun MainScreen(onTriggerAlarm: () -> Unit, modifier: Modifier = Modifier) {
+fun MainScreen(onTriggerAlarm: () -> Unit, onUpdateNextEvent: () -> Unit, modifier: Modifier = Modifier) {
   val viewModel = viewModel<MainViewModel>()
   val event by viewModel.nextEventState.collectAsStateWithLifecycle()
-  MainScreen(event, onTriggerAlarm, modifier)
+  MainScreen(event, onTriggerAlarm, onUpdateNextEvent, modifier)
 }
 
 @Composable
-private fun MainScreen(event: Event, onTriggerAlarm: () -> Unit, modifier: Modifier = Modifier) {
+private fun MainScreen(event: Event, onTriggerAlarm: () -> Unit, onUpdateNextEvent: () -> Unit, modifier: Modifier = Modifier) {
   LazyColumn(modifier = modifier) {
     item {
       val text = buildString {
@@ -38,11 +39,16 @@ private fun MainScreen(event: Event, onTriggerAlarm: () -> Unit, modifier: Modif
         Text("Trigger Alarm")
       }
     }
+    item {
+      Button(onClick = onUpdateNextEvent) {
+        Text("Update Next Event")
+      }
+    }
   }
 }
 
 @Preview
 @Composable
 fun AppPreview() {
-  MainScreen(Event("Test", Instant.now()), {})
+  MainScreen(Event("Test", Instant.now()), {}, {})
 }

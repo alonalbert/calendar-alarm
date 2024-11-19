@@ -26,7 +26,7 @@ class MainActivity : ComponentActivity() {
     setContent {
       CalendarAlarmTheme {
         Scaffold(modifier = Modifier.Companion.fillMaxSize()) { innerPadding ->
-          MainScreen({ AlarmBroadcastReceiver.triggerAlarm(this, "Test") }, modifier = Modifier.Companion.padding(innerPadding))
+          MainScreen({ AlarmBroadcastReceiver.triggerAlarm(this, "Test") }, { AppService.start(this) }, modifier = Modifier.Companion.padding(innerPadding))
         }
       }
     }
