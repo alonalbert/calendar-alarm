@@ -4,11 +4,10 @@ import android.content.ContentResolver
 import android.content.ContentUris
 import android.database.Cursor
 import android.net.Uri
+import android.provider.CalendarContract.Attendees
 import android.provider.CalendarContract.Calendars
 import android.provider.CalendarContract.Events
 import android.provider.CalendarContract.Instances
-import android.util.Log
-import com.alonalbert.calendaralarm.TAG
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.time.Instant
@@ -26,7 +25,7 @@ private const val BEGIN_IDX = 1
 private val EVENT_SELECTION = """
   TRUE
   AND ${Events.ALL_DAY} = 0 
-  AND ${Events.SELF_ATTENDEE_STATUS} = ${Events.STATUS_CONFIRMED}  
+  AND ${Events.SELF_ATTENDEE_STATUS} IN ( ${Events.STATUS_CONFIRMED}, ${Attendees.ATTENDEE_STATUS_NONE})  
 """.trimIndent()
 
 class CalendarDataSource(private val contentResolver: ContentResolver) {
